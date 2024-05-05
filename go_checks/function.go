@@ -6,18 +6,11 @@ import (
 	"go/printer"
 	"go/token"
 	"llm-check/comments"
+	"llm-check/common"
 	"log"
 )
 
-type Function interface {
-	Module() string
-	Name() string
-	String() string
-	// Newline delimited function doc comments.
-	Docs() []string
-	CallSites() []Function
-    Location() (token.Position, token.Position)
-}
+var _ common.Function = (*GoFunction)(nil)
 
 type GoFunction struct {
 	pkg  string
@@ -25,7 +18,14 @@ type GoFunction struct {
 	proj *Project
 }
 
-var _ Function = (*GoFunction)(nil)
+type FunctionWithCheck struct {
+	GoFunction
+	check common.Check
+}
+
+func (fwc FunctionWithCheck) Check() common.Check {
+	return fwc.check
+}
 
 func NewGoFunction(fn *ast.FuncDecl, proj *Project, pkg string) GoFunction {
 	return GoFunction{pkg, fn, proj}
@@ -40,7 +40,7 @@ func (gf GoFunction) Module() string {
 }
 
 func (gf GoFunction) Location() (token.Position, token.Position) {
-    return gf.proj.Fset.Position(gf.fn.Pos()), gf.proj.Fset.Position(gf.fn.End())
+	return gf.proj.Fset.Position(gf.fn.Pos()), gf.proj.Fset.Position(gf.fn.End())
 }
 
 func (gf GoFunction) Docs() []string {
@@ -64,8 +64,8 @@ func (gf GoFunction) String() string {
 	return buf.String()
 }
 
-func (gf GoFunction) CallSites() []Function {
-	var fns []Function
+func (gf GoFunction) CallSites() []common.Function {
+	var fns []common.Function
 	// var fileContext *ast.File
 
 	funcFilter := func(n ast.Node) bool {
@@ -109,8 +109,8 @@ func (gf GoFunction) CallSites() []Function {
 	return fns
 }
 
-func GetFnsWithCheck(proj *Project) []Function {
-	var fns []Function
+func GetFnsWithCheck(proj *Project) []common.FunctionWithCheck {
+	var fns []common.FunctionWithCheck
 
 	for _, file := range proj.Files() {
 		ast.Inspect(file, func(n ast.Node) bool {
@@ -118,7 +118,11 @@ func GetFnsWithCheck(proj *Project) []Function {
 				newFn := NewGoFunction(fn, proj, file.Name.String())
 				checks := comments.ParseChecksFromComments(newFn.Docs())
 				if len(checks) != 0 {
-					fns = append(fns, newFn)
+					// TODO: look at using more than just the first check
+					fns = append(fns, FunctionWithCheck{
+						newFn,
+						checks[0],
+					})
 				}
 			}
 			return true
