@@ -9,5 +9,6 @@ import (
 // llm-check(caller): make sure to close this file after use.
 func openFileForWriting() (*os.File, error) {
     sample2.MyExportedFunc()
+    println("hello world")
     return os.OpenFile("/tmp/some_file.txt", os.O_CREATE, fs.ModeAppend)
 }

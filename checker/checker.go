@@ -14,7 +14,7 @@ type CheckFail struct {
 }
 
 func (cf CheckFail) String() string {
-    return fmt.Sprintf("Function %s failed at %s because %s", cf.Origin.Name(), cf.FailFn.Name(), cf.Reason)
+    return fmt.Sprintf("Function %s failed at %s because:\n%s", cf.Origin.Name(), cf.FailFn.Name(), cf.Reason)
 }
 
 type Checker struct {

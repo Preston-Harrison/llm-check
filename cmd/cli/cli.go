@@ -8,14 +8,14 @@ import (
 
 func main() {
 	dir := flag.String("dir", ".", "directory to scan")
-	openaiApiKey := flag.String("key", "", "openai api key")
+	openAiKey := flag.String("key", "", "openai api key")
 	flag.Parse()
 
-	if *openaiApiKey == "" {
+	if *openAiKey == "" {
 		panic("must set openai api key")
 	}
 
-	checker := checker.NewOpenAI("gpt-4", *openaiApiKey)
+	checker := checker.NewOpenAI("gpt-4", *openAiKey)
 	fails, err := checker.Check(*dir)
 	if err != nil {
 		panic(err)

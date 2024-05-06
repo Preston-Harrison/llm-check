@@ -1,4 +1,4 @@
 package sample2
 
-// llm-check(caller): Test that exported functions work
+// llm-check(caller): Must always print hello world after calling this function.
 func MyExportedFunc() {}
